@@ -37,15 +37,15 @@ const userSchema = mongoose.Schema({
 
 
 userSchema.pre('save', (next) => {
-    let user = this;
-    if (user.isModified('password')) {
+    // this === user
+    if (this.isModified('password')) {
         // encrypt password.
         bcrypt.genSalt(saltRounds, (err, salt) => {
             if (err) return next(err)
 
-            bcrypt.hash(user.password, salt, (err, hash) => {
+            bcrypt.hash(this.password, salt, (err, hash) => {
                 if (err) return next(err)
-                user.password = hash
+                this.password = hash
                 next()
             })
         })
@@ -56,8 +56,8 @@ userSchema.pre('save', (next) => {
 
 
 userSchema.methods.comparePassword = (plainPassword, cb) => {
-
-    //plainPassword 1234567    encrypted $2b$10$l492vQ0M4s9YUBfwYkkaZOgWHExahjWC
+    // e.g., plainPassword 1234567
+    // encrypted $2b$10$l492vQ0M4s9YUBfwYkkaZOgWHExahjWC
     bcrypt.compare(plainPassword, this.password, (err, isMatch) => {
         if (err) return cb(err);
         cb(null, isMatch);
@@ -65,30 +65,22 @@ userSchema.methods.comparePassword = (plainPassword, cb) => {
 }
 
 userSchema.methods.generateToken = (cb) => {
-    let user = this;
-    // console.log('user._id', user._id)
-
     // create token using jsonwebtoken
-    let token = jwt.sign(user._id.toHexString(), 'secretToken')
-    // user._id + 'secretToken' = token 
-    // -> 
-    // 'secretToken' -> user._id
+    const token = jwt.sign(this._id.toHexString(), 'secretToken')
 
-    user.token = token
-    user.save((err, user) => {
+    this.token = token
+    this.save((err, user) => {
         if (err) return cb(err)
         cb(null, user)
     })
 }
 
 userSchema.statics.findByToken = (token, cb) => {
-    let user = this;
-    // user._id + ''  = token
-    // ecode the toekn. 
+    // decode
     jwt.verify(token, 'secretToken', (err, decoded) => {
-        // Fined the user with user id and
-        // compare tokens from the client and DB
-        user.findOne({ "_id": decoded, "token": token }, (err, user) => {
+        // Find the matching user by the user id and
+        // comparing tokens from the client(cookie) and DB
+        this.findOne({ "_id": decoded, "token": token }, (err, user) => {
             if (err) return cb(err);
             cb(null, user)
         })
