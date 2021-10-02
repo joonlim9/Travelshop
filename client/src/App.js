@@ -5,10 +5,10 @@ import {
   Route,
 } from "react-router-dom";
 
-import LandingPage from "./views/LandingPage.js";
-import LoginPage from "./views/LoginPage.js";
-import RegisterPage from "./views/RegisterPage.js";
-// import Auth from "../hoc/auth";
+import LandingPage from './components/views/LandingPage.js';
+import LoginPage from './components/views/LoginPage.js';
+import RegisterPage from './components/views/RegisterPage.js';
+import Auth from './hoc/auth.js';
 
 function App() {
   return (
@@ -22,9 +22,9 @@ function App() {
           of them to render at a time
         */}
         <Switch>
-          <Route exact path="/" component={ LandingPage } />
-          <Route exact path="/login" component={ LoginPage } />
-          <Route exact path="/register" component={ RegisterPage } />
+          <Route exact path="/" component={ Auth(LandingPage, null) } />
+          <Route exact path="/login" component={ Auth(LoginPage, false) } />
+          <Route exact path="/register" component={ Auth(RegisterPage, false) } />
         </Switch>
       </div>
     </Router>
